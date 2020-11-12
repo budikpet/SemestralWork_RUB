@@ -1,0 +1,12 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run renamer rdebug-ide",
+      "type": "shell",
+      "command": "rdebug-ide --host 127.0.0.1 --port 1234 ./renamer.rb"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+Layout/EmptyLinesAroundBlockBody:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false
+
+Style/NestedParenthesizedCalls:
+  Enabled: false
+
+Style/WordArray:
+  Enabled: false
