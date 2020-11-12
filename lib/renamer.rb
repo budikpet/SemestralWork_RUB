@@ -2,7 +2,7 @@
 
 require_relative 'renamer/cli_logic'
 require 'bundler/setup'
-Bundler.require(:default)
+Bundler.require(:default, :development)
 
 module Renamer
   # Thor CLI interface for Renamer CLI utility.
@@ -15,7 +15,7 @@ module Renamer
       renamer_cmd = options[:renamer]
       if arabic_cmd.nil? && renamer_cmd.nil?
         CLI.command_help(Thor::Base.shell.new, 'renamer')
-        return
+        nil
       end
       # cli_logic = CLI_Logic.new
       # puts cli_logic.renamer_method_logic(arabic_cmd, renamer_cmd)
