@@ -2,4 +2,4 @@
 
 require 'renamer'
 
-Renamer::CLI.start
+Renamer::CLI.start(ARGV)
