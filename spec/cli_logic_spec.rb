@@ -29,7 +29,7 @@ describe 'Renamer::CLI_Logic' do
 
   subject(:cli_logic) { Renamer::CLI_Logic.new }
 
-  it 'should exist @tmp_dir' do
+  it '@tmp_dir should exist' do
     expect(Dir.exist?(@tmp_dir)).to be true
   end
 
@@ -46,12 +46,13 @@ describe 'Renamer::CLI_Logic' do
       ]
       # expect(File.read(temp_file)).to eq 'foo'
       current_files = Dir["#{@tmp_dir}/*"]
-      dir_locations = current_files.collect { |path| path.split('/')[0..-2].join('/') }.uniq
-      current_files = current_files.map { |path| path.split('/')[-1] }
+      dir_locations = current_files.collect { |path| File.dirname(path) }.uniq
+      current_files = current_files.map { |path| File.basename(path) }.sort
+      puts dir_locations
 
       expect(current_files.empty?).to eq false
       expect(dir_locations.size).to eq 1
-      expect(current_files.sort).to eq ['4temporary.txt', 'temporary.txt', 'temporary2.txt', 'temporary3temporary.txt'].sort
+      expect(current_files).to eq ['4temporary.txt', 'temporary.txt', 'temporary2.txt', 'temporary3temporary.txt'].sort
     end
 
     after(:all) do
