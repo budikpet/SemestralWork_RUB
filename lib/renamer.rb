@@ -24,6 +24,7 @@ module Renamer
     def base_replace(*files_folders)
       cli_logic = CLI_Logic.new
       cli_logic.base_replace(options[:find_str], options[:replace_str], options[:dry_run], options[:dir_focus], files_folders)
+      
       # if find_str.nil?
       #   CLI.command_help(Thor::Base.shell.new, 'base_replace')
       #   nil
