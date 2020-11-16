@@ -7,19 +7,7 @@ require 'tmpdir'
 require 'pathname'
 require 'stringio'
 require_relative 'spec_helper'
-
-def create_file(path)
-  File.open(path, 'w') do |f|
-    f.write('foo')
-  end
-
-  path
-end
-
-def create_folder(path)
-  FileUtils.mkdir_p path
-  path
-end
+require_relative 'spec_utils'
 
 describe 'Renamer::CLI_Logic' do
   before(:all) do
@@ -53,14 +41,14 @@ describe 'Renamer::CLI_Logic' do
 
       # Changes standard output to StringIO to catch `puts` of the base_replace method
       # Changes standard output back after base_replace is done
-      last_stdout = $stdout
-      $stdout = StringIO.new
-      subject.base_replace(find_str, replace_str, false, ReplaceModes::ALL, [@tmp_dir])
-      output = $stdout.string.split("\n")
-      $stdout = last_stdout
+      output = SpecUtils.test_with_output do
+        subject.base_replace(find_str, replace_str, false, ReplaceModes::ALL, [@tmp_dir])
+      end
 
       # Check output
       expect(output[0]).to eq "Find pattern `#{find_str}` in names and replace it with `#{replace_str}`."
+      expect(output.count { |str| str.include? 'Renamed `4temp.txt` -> `4t.txt`' }).to eq 1
+      expect(output.count { |str| str.include? 'Renamed `other.txt` -> `other.txt`' }).to eq 1
 
       current_files = Dir.glob("#{@tmp_dir}/**/*").map { |path| Pathname.new(path) }
       curr_dirs = current_files.select(&:directory?)
