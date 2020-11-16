@@ -36,7 +36,7 @@ describe 'Renamer::CLI_Logic' do
     FileUtils.touch("#{@tmp_dir}/temp2.txt")
     FileUtils.touch("#{@tmp_dir}/in_temp/temp3temp.txt")
     FileUtils.touch("#{@tmp_dir}/in_temp/in_in_temp/4temp.txt")
-    FileUtils.touch("#{@tmp_dir}/in_temp2/something_tems.txt")
+    FileUtils.touch("#{@tmp_dir}/in_temp2/other.txt")
   end
 
   subject(:cli_logic) { Renamer::CLI_Logic.new }
@@ -48,16 +48,16 @@ describe 'Renamer::CLI_Logic' do
   describe 'base_replace command, ALL mode: ' do
     it 'only files' do
       find_str = 'temp'
-      replace_str = 'temporary'
+      replace_str = 't'
 
       subject.base_replace(find_str, replace_str, false, ReplaceModes::ALL, [@tmp_dir])
 
-      current_files = Dir["#{@tmp_dir}/*"].map { |path| Pathname.new(path) }
+      current_files = Dir.glob("#{@tmp_dir}/**/*").map { |path| Pathname.new(path) }
       curr_dirs = current_files.select(&:directory?)
       current_files = current_files.select(&:file?).map { |path| File.basename(path) }.sort
 
       expect(current_files.empty?).to eq false
-      expect(current_files).to eq ['4temporary.txt', 'temporary.txt', 'temporary2.txt', 'temporary3temporary.txt'].sort
+      expect(current_files).to eq ['4t.txt', 't.txt', 't2.txt', 't3t.txt', 'other.txt'].sort
     end
 
     after(:all) do
