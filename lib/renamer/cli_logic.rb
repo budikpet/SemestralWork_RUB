@@ -32,7 +32,15 @@ module Renamer
         paths.each do |path|
           curr_name = path.basename.to_s
           new_name = curr_name.gsub(find_str, replace_str)
-          puts "Would do a rename `#{curr_name}` -> `#{new_name}` for: #{path}"
+          if curr_name == new_name
+            # Pattern not found in the current name. Do not rename
+            puts "Provided pattern would have no effect on `#{curr_name}` [#{path}]"
+          elsif new_name.empty?
+            puts "Wouldn`t rename `#{curr_name}` -> `#{new_name}` [#{path}]"
+          else
+            # Would rename file
+            puts "Would rename `#{curr_name}` -> `#{new_name}` [#{path}]"
+          end
         end
         return
       end
@@ -41,8 +49,16 @@ module Renamer
         parent_folder = path.dirname
         curr_name = path.basename.to_s
         new_name = curr_name.gsub(find_str, replace_str)
-        File.rename(path, parent_folder + new_name)
-        puts "Renamed `#{curr_name}` -> `#{new_name}` for: #{path}"
+        if curr_name == new_name
+          # Pattern not found in the current name. Do not rename
+          puts "Provided pattern has no effect on `#{curr_name}` [#{path}]"
+        elsif new_name.empty?
+          puts "Won`t rename `#{curr_name}` -> `#{new_name}` [#{path}]"
+        else
+          # Renamed file
+          File.rename(path, parent_folder + new_name)
+          puts "Renamed `#{curr_name}` -> `#{new_name}` [#{path}]"
+        end
       end
     end
 
