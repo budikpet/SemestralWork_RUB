@@ -59,6 +59,7 @@ module Renamer
       if dry_run
         # Only print
         paths.each_with_index do |path, index|
+          parent_folder = path.dirname
           curr_name = path.basename.to_s
           new_name = yield(path, index)
           if curr_name == new_name
@@ -66,6 +67,8 @@ module Renamer
             puts "Provided pattern would have no effect on `#{curr_name}` [#{path}]"
           elsif new_name.empty?
             puts "Wouldn`t rename `#{curr_name}` -> `#{new_name}` [#{path}]"
+          elsif (parent_folder + new_name).exist?
+            puts "Wouldn`t rename `#{curr_name}` -> `#{new_name}` since it already exists. [#{path}]"
           else
             # Would rename file
             puts "Would rename `#{curr_name}` -> `#{new_name}` [#{path}]"
@@ -83,6 +86,8 @@ module Renamer
           puts "Provided pattern has no effect on `#{curr_name}` [#{path}]"
         elsif new_name.empty?
           puts "Won`t rename `#{curr_name}` -> `#{new_name}` [#{path}]"
+        elsif (parent_folder + new_name).exist?
+          puts "Won`t rename `#{curr_name}` -> `#{new_name}` since it already exists. [#{path}]"
         else
           # Renamed file
           File.rename(path, parent_folder + new_name)

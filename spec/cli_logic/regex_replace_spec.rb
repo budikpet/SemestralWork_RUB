@@ -41,7 +41,7 @@ describe 'Renamer::CLI_Logic, regex_replace command: ' do
     # Changes standard output to StringIO to catch `puts` of the base_replace method
     # Changes standard output back after base_replace is done
     output = SpecUtils.test_with_output do
-      subject.base_replace(find_str, replace_str, false, ReplaceModes::ALL, [@tmp_dir])
+      subject.base_replace(find_str, replace_str, false, ReplaceModes::ALL, [@tmp_dir + '/temp'])
     end
 
     # puts output.join("\n")
@@ -76,7 +76,7 @@ describe 'Renamer::CLI_Logic, regex_replace command: ' do
     # Changes standard output to StringIO to catch `puts` of the base_replace method
     # Changes standard output back after base_replace is done
     output = SpecUtils.test_with_output do
-      subject.base_replace(find_str, replace_str, false, ReplaceModes::FILES_ONLY, [@tmp_dir])
+      subject.base_replace(find_str, replace_str, false, ReplaceModes::FILES_ONLY, [@tmp_dir + '/temp'])
     end
 
     # puts output.join("\n")
@@ -111,7 +111,7 @@ describe 'Renamer::CLI_Logic, regex_replace command: ' do
     # Changes standard output to StringIO to catch `puts` of the base_replace method
     # Changes standard output back after base_replace is done
     output = SpecUtils.test_with_output do
-      subject.base_replace(find_str, replace_str, false, ReplaceModes::FOLDERS_ONLY, [@tmp_dir])
+      subject.base_replace(find_str, replace_str, false, ReplaceModes::FOLDERS_ONLY, [@tmp_dir + '/temp'])
     end
 
     # puts output.join("\n")
@@ -146,7 +146,7 @@ describe 'Renamer::CLI_Logic, regex_replace command: ' do
     # Changes standard output to StringIO to catch `puts` of the base_replace method
     # Changes standard output back after base_replace is done
     output = SpecUtils.test_with_output do
-      subject.base_replace(find_str, replace_str, true, ReplaceModes::ALL, [@tmp_dir])
+      subject.base_replace(find_str, replace_str, true, ReplaceModes::ALL, [@tmp_dir + '/temp'])
     end
 
     # puts output.join("\n")
@@ -181,7 +181,7 @@ describe 'Renamer::CLI_Logic, regex_replace command: ' do
     # Changes standard output to StringIO to catch `puts` of the base_replace method
     # Changes standard output back after base_replace is done
     output = SpecUtils.test_with_output do
-      subject.base_replace(find_str, replace_str, false, ReplaceModes::ALL, [@tmp_dir])
+      subject.base_replace(find_str, replace_str, false, ReplaceModes::ALL, [@tmp_dir + '/temp'])
     end
 
     # puts output.join("\n")
@@ -209,6 +209,78 @@ describe 'Renamer::CLI_Logic, regex_replace command: ' do
     expect(curr_dirs.empty?).to eq false
     expect(curr_files).to eq ['4.txt', '.txt', '2.txt', '3.txt', 'other.txt'].sort
     expect(curr_dirs).to eq ['temp', 'in_', 'in_2', 'in_in_'].sort
+  end
+
+  it 'checks behaviour when file with a new name already exists' do
+    find_str = '2'
+    replace_str = ''
+
+    # Changes standard output to StringIO to catch `puts` of the base_replace method
+    # Changes standard output back after base_replace is done
+    output = SpecUtils.test_with_output do
+      subject.base_replace(find_str, replace_str, false, ReplaceModes::ALL, [@tmp_dir + '/temp'])
+    end
+
+    # puts output.join("\n")
+
+    # Check output
+    expect(output[0]).to eq "Find pattern `#{find_str}` in names and replace it with `#{replace_str}`."
+    expect(output.count { |str| str.include? 'Provided pattern has no effect on `other.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Provided pattern has no effect on `4temp.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Provided pattern has no effect on `temp3temp.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Won`t rename `temp2.txt` -> `temp.txt` since it already exists' }).to eq 1
+    expect(output.count { |str| str.include? 'Provided pattern has no effect on `temp.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Provided pattern has no effect on `in_in_temp`' }).to eq 1
+    expect(output.count { |str| str.include? 'Won`t rename `in_temp2` -> `in_temp` since it already exists' }).to eq 1
+    expect(output.count { |str| str.include? 'Provided pattern has no effect on `in_temp`' }).to eq 1
+    expect(output.count { |str| str.include? 'Provided pattern has no effect on `temp`' }).to eq 1
+
+    curr_files = Dir.glob("#{@tmp_dir}/**/*").map { |path| Pathname.new(path) }
+    curr_dirs = curr_files.select(&:directory?).map { |path| path.basename.to_s }.sort
+    curr_files = curr_files.select(&:file?).map { |path| path.basename.to_s }.sort
+
+    # Check file system
+
+    expect(curr_files.empty?).to eq false
+    expect(curr_dirs.empty?).to eq false
+    expect(curr_files).to eq ['4temp.txt', 'temp.txt', 'temp2.txt', 'temp3temp.txt', 'other.txt'].sort
+    expect(curr_dirs).to eq ['temp', 'in_temp', 'in_temp2', 'in_in_temp'].sort
+  end
+
+  it 'checks dry_run behaviour when file with a new name already exists' do
+    find_str = '2'
+    replace_str = ''
+
+    # Changes standard output to StringIO to catch `puts` of the base_replace method
+    # Changes standard output back after base_replace is done
+    output = SpecUtils.test_with_output do
+      subject.base_replace(find_str, replace_str, true, ReplaceModes::ALL, [@tmp_dir + '/temp'])
+    end
+
+    # puts output.join("\n")
+
+    # Check output
+    expect(output[0]).to eq "Find pattern `#{find_str}` in names and replace it with `#{replace_str}`."
+    expect(output.count { |str| str.include? 'Provided pattern would have no effect on `other.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Provided pattern would have no effect on `4temp.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Provided pattern would have no effect on `temp3temp.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Wouldn`t rename `temp2.txt` -> `temp.txt` since it already exists' }).to eq 1
+    expect(output.count { |str| str.include? 'Provided pattern would have no effect on `temp.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Provided pattern would have no effect on `in_in_temp`' }).to eq 1
+    expect(output.count { |str| str.include? 'Wouldn`t rename `in_temp2` -> `in_temp` since it already exists' }).to eq 1
+    expect(output.count { |str| str.include? 'Provided pattern would have no effect on `in_temp`' }).to eq 1
+    expect(output.count { |str| str.include? 'Provided pattern would have no effect on `temp`' }).to eq 1
+
+    curr_files = Dir.glob("#{@tmp_dir}/**/*").map { |path| Pathname.new(path) }
+    curr_dirs = curr_files.select(&:directory?).map { |path| path.basename.to_s }.sort
+    curr_files = curr_files.select(&:file?).map { |path| path.basename.to_s }.sort
+
+    # Check file system
+
+    expect(curr_files.empty?).to eq false
+    expect(curr_dirs.empty?).to eq false
+    expect(curr_files).to eq ['4temp.txt', 'temp.txt', 'temp2.txt', 'temp3temp.txt', 'other.txt'].sort
+    expect(curr_dirs).to eq ['temp', 'in_temp', 'in_temp2', 'in_in_temp'].sort
   end
 
   after(:all) do
