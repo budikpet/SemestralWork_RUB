@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'set'
 require_relative 'replace_modes'
 
 module Renamer
@@ -57,19 +58,22 @@ module Renamer
 
       if dry_run
         # Only print
+        pathnames_set = Set.new
         paths.each_with_index do |path, index|
           parent_folder = path.dirname
           curr_name = path.basename.to_s
           new_name = yield(path, index)
+          new_path = parent_folder + new_name
           if curr_name == new_name
             # Pattern not found in the current name. Do not rename
             puts "Provided pattern would have no effect on `#{curr_name}` [#{path}]"
           elsif new_name.empty?
             puts "Wouldn`t rename `#{curr_name}` -> `#{new_name}` [#{path}]"
-          elsif (parent_folder + new_name).exist?
+          elsif new_path.exist? || pathnames_set.include?(new_path)
             puts "Wouldn`t rename `#{curr_name}` -> `#{new_name}` since it already exists. [#{path}]"
           else
             # Would rename file
+            pathnames_set.add(new_path)
             puts "Would rename `#{curr_name}` -> `#{new_name}` [#{path}]"
           end
         end
