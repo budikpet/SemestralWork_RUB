@@ -27,16 +27,15 @@ module Renamer
     # Contains logic of regex_replace CLI command.
     # Matches a given regex in names of given files and/or folders and replaces it using another regex.
     # @param find_str [String] - a regex string to find & to be replaced in names of the given files and/or folders
-    # @param replace_str [String] - a regex string to be used as a replacement in names of files and/or folders
+    # @param replace_str [String] - a base string to be used as a replacement in names of files and/or folders
     # @param dry_run [boolean] - true <=> we want to print out what would happen without making changes in the file_system
     # @param replace_mode [ReplaceMode] - tells the system whether file names, directory names or all given names should be changed
     # @param files_folders [Array<String>] - an array of all files and/or folders to be renamed
     def regex_replace(find_str, replace_str, dry_run, replace_mode, files_folders)
-      find_str = Regexp.new find_str
-      replace_str = Regexp.new replace_str
+      find_str = Regexp.new(find_str.sub(%r{^/}, '').sub(%r{/$}, ''))
       paths = get_paths(replace_mode, files_folders)
 
-      puts "Find pattern `#{find_str}` in names and replace it with `#{replace_str}`."
+      puts "Find pattern `#{find_str.source}` in names and replace it with `#{replace_str}`."
       rename_files(paths, dry_run) do |curr_path, _|
         curr_name = curr_path.basename.to_s
         curr_name.gsub(find_str, replace_str)

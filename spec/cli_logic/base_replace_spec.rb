@@ -88,9 +88,8 @@ describe 'Renamer::CLI_Logic, base_replace command: ' do
     expect(output.count { |str| str.include? 'Renamed `temp3temp.txt` -> `t3t.txt`' }).to eq 1
     expect(output.count { |str| str.include? 'Renamed `temp2.txt` -> `t2.txt`' }).to eq 1
     expect(output.count { |str| str.include? 'Renamed `temp.txt` -> `t.txt`' }).to eq 1
-    expect(output.count { |str| str.include? 'Renamed `in_in_temp` -> `in_in_t`' }).to eq 0
-    expect(output.count { |str| str.include? 'Renamed `in_temp` -> `in_t' }).to eq 0
-    expect(output.count { |str| str.include? 'Renamed `temp` -> `t`' }).to eq 0
+    expect(output.count { |str| str.include? '`in_in_temp`' }).to eq 0
+    expect(output.count { |str| str.include? '`in_temp`' }).to eq 0
 
     curr_files = Dir.glob("#{@tmp_dir}/**/*").map { |path| Pathname.new(path) }
     curr_dirs = curr_files.select(&:directory?).map { |path| path.basename.to_s }.sort
@@ -118,11 +117,11 @@ describe 'Renamer::CLI_Logic, base_replace command: ' do
 
     # Check output
     expect(output[0]).to eq "Find pattern `#{find_str}` in names and replace it with `#{replace_str}`."
-    expect(output.count { |str| str.include? 'Provided pattern has no effect on `other.txt`' }).to eq 0
-    expect(output.count { |str| str.include? 'Renamed `4temp.txt` -> `4t.txt`' }).to eq 0
-    expect(output.count { |str| str.include? 'Renamed `temp3temp.txt` -> `t3t.txt`' }).to eq 0
-    expect(output.count { |str| str.include? 'Renamed `temp2.txt` -> `t2.txt`' }).to eq 0
-    expect(output.count { |str| str.include? 'Renamed `temp.txt` -> `t.txt`' }).to eq 0
+    expect(output.count { |str| str.include? '`other.txt`' }).to eq 0
+    expect(output.count { |str| str.include? '`4temp.txt`' }).to eq 0
+    expect(output.count { |str| str.include? '`temp3temp.txt``' }).to eq 0
+    expect(output.count { |str| str.include? '`temp2.txt`' }).to eq 0
+    expect(output.count { |str| str.include? '`temp.txt`' }).to eq 0
     expect(output.count { |str| str.include? 'Renamed `in_in_temp` -> `in_in_t`' }).to eq 1
     expect(output.count { |str| str.include? 'Renamed `in_temp` -> `in_t' }).to eq 1
     expect(output.count { |str| str.include? 'Renamed `temp` -> `t`' }).to eq 1

@@ -38,7 +38,7 @@ module Renamer
         If folders are provided and files are to be renamed then the default behavior is to rename files they contain.
     LONGDESC
     method_option :find_str, type: :string, aliases: '-f', required: true, desc: 'The regex string to be found in filenames.'
-    method_option :replace_str, type: :string, aliases: '-r', default: '', desc: 'The regex string that is to replace the found string.'
+    method_option :replace_str, type: :string, aliases: '-r', default: '', desc: 'The base string that is to replace the found string.'
     method_option :dry_run, type: :boolean, aliases: '-d', default: false, desc: 'If this flag is set then the command runs without making changes to the given files.'
     method_option :replace_mode, type: :string, aliases: '-m', default: ReplaceModes::ALL, enum: ReplaceModes.all_values, desc: 'Sets the mode to replace names of only files, only folders or all'
     def regex_replace(*files_folders)
