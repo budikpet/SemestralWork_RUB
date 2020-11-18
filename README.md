@@ -22,5 +22,10 @@ $ ./renamer.rb -h
 
 Run tests:
 ```
-$ rake
+$ rspec spec
+```
+
+Generate documentation:
+```
+$ yardoc 'lib/**/*.rb'
 ```
