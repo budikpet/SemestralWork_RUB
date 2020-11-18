@@ -43,6 +43,33 @@ module Renamer
       end
     end
 
+    # Contains logic of regex_replace CLI command.
+    # Matches a given regex in names of given files and/or folders and replaces it using another regex.
+    # @param prepend [String] - a text to prepend to filenames of the given files and/or folders
+    # @param append [String] - a text to append to filenames of the given files and/or folders
+    # @param dry_run [boolean] - true <=> we want to print out what would happen without making changes in the file_system
+    # @param replace_mode [ReplaceMode] - tells the system whether file names, directory names or all given names should be changed
+    # @param files_folders [Array<String>] - an array of all files and/or folders to be renamed
+    def add_text(prepend, append, dry_run, replace_mode, files_folders)
+      prepend = prepend.nil? ? '' : prepend
+      append = append.nil? ? '' : append
+      paths = get_paths(replace_mode, files_folders)
+
+      if !prepend.empty? && !append.empty?
+        puts "Prepend text `#{prepend}` and append text `#{append}`."
+      elsif !prepend.empty?
+        puts "Prepend text `#{prepend}`."
+      elsif !append.empty?
+        puts "Append text `#{append}`."
+      end
+
+      rename_files(paths, dry_run) do |curr_path, _|
+        curr_extname = curr_path.extname.to_s
+        curr_name = curr_path.basename.to_s.sub(curr_extname, '')
+        "#{prepend}#{curr_name}#{append}#{curr_extname}"
+      end
+    end
+
     private
 
     # Runs the logic of renaming files.

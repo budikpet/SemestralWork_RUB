@@ -58,6 +58,35 @@ describe 'Renamer::CLI_Logic, regex_replace command: ' do
     expect(curr_dirs).to eq ['temp'].sort
   end
 
+  it 'checks regex with groups' do
+    find_str = '(\d\d)(\D*)(\d\d)(\D*)(\d+)'
+    replace_str = '\1\3\5\2\4'
+
+    # Changes standard output to StringIO to catch `puts` of the regex_replace method
+    # Changes standard output back after regex_replace is done
+    output = SpecUtils.test_with_output do
+      subject.regex_replace(find_str, replace_str, false, ReplaceModes::ALL, [@tmp_dir + '/temp'])
+    end
+
+    # puts output.join("\n")
+
+    # Check output
+    expect(output[0]).to eq "Find pattern `#{find_str}` in names and replace it with `#{replace_str}`."
+    expect(output.count { |str| str.include? 'Renamed `12ah34oj56789.txt` -> `123456789ahoj.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Provided pattern has no effect on `temp`' }).to eq 1
+
+    curr_files = Dir.glob("#{@tmp_dir}/**/*").map { |path| Pathname.new(path) }
+    curr_dirs = curr_files.select(&:directory?).map { |path| path.basename.to_s }.sort
+    curr_files = curr_files.select(&:file?).map { |path| path.basename.to_s }.sort
+
+    # Check file system
+
+    expect(curr_files.empty?).to eq false
+    expect(curr_dirs.empty?).to eq false
+    expect(curr_files).to eq ['123456789ahoj.txt'].sort
+    expect(curr_dirs).to eq ['temp'].sort
+  end
+
   it 'checks dry run' do
     find_str = '\d'
     replace_str = ''

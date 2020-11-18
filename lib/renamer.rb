@@ -45,5 +45,31 @@ module Renamer
       cli_logic = CLI_Logic.new
       cli_logic.regex_replace(options[:find_str], options[:replace_str], options[:dry_run], options[:replace_mode], files_folders)
     end
+
+    desc 'add-text [FILE_PATHS]', ''
+    long_desc <<-LONGDESC
+      Loads the given files and all files in the given folders.
+      Renames them by appending and/or prepending provided text.
+
+      FILE_PATHS:
+        \x5
+        Contains filepaths to files and/or folders that should be renamed.\x5
+        If folders are provided and files are to be renamed then the default behavior is to rename files they contain.
+    LONGDESC
+    method_option :prepend, type: :string, aliases: '-p', desc: 'The text to prepend to filenames.'
+    method_option :append, type: :string, aliases: '-a', default: '', desc: 'The text to append to filenames.'
+    method_option :dry_run, type: :boolean, aliases: '-d', default: false, desc: 'If this flag is set then the command runs without making changes to the given files.'
+    method_option :replace_mode, type: :string, aliases: '-m', default: ReplaceModes::ALL, enum: ReplaceModes.all_values, desc: 'Sets the mode to replace names of only files, only folders or all'
+    def add_text(*files_folders)
+      prepend = options[:prepend]
+      append = options[:append]
+      if prepend.nil? && append.nil?
+        CLI.command_help(Thor::Base.shell.new, 'add-text')
+        return
+      end
+
+      cli_logic = CLI_Logic.new
+      cli_logic.add_text(prepend, append, options[:dry_run], options[:replace_mode], files_folders)
+    end
   end
 end
