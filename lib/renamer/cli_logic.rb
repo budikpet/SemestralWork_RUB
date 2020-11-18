@@ -86,6 +86,56 @@ module Renamer
       end
     end
 
+    # Contains logic of regex_replace CLI command.
+    # Matches a given regex in names of given files and/or folders and replaces it using another regex.
+    # @param file_format [String] - a text to prepend to filenames of the given files and/or folders
+    # @param folder_format [String] - a text to append to filenames of the given files and/or folders
+    # @param file_initial_num [Integer] - an initial number for files
+    # @param folder_initial_num [Integer] - a text to append to filenames of the given files and/or folders
+    # @param dry_run [boolean] - true <=> we want to print out what would happen without making changes in the file_system
+    # @param replace_mode [ReplaceMode] - tells the system whether file names, directory names or all given names should be changed
+    # @param files_folders [Array<String>] - an array of all files and/or folders to be renamed
+    def format(file_format, dir_format, file_initial_num, dir_initial_num, dry_run, replace_mode, files_folders)
+      raise ArgumentError, 'No files or folders provided for renaming.' if files_folders.empty?
+      unless files_folders.any? { |path| File.exist?(path) }
+        raise ArgumentError, 'Neither of provided files or folders exists.'
+      end
+
+      paths = get_paths(replace_mode, files_folders)
+
+      # Check if file and folder format vars contain NUM_LOCATOR
+      file_format = NUM_LOCATOR if file_format.empty? || file_format.nil?
+      file_format = "#{file_format}#{NUM_LOCATOR}" unless file_format.include? NUM_LOCATOR
+      dir_format = NUM_LOCATOR if dir_format.empty? || dir_format.nil?
+      dir_format = "#{dir_format}#{NUM_LOCATOR}" unless dir_format.include? NUM_LOCATOR
+
+      paths_hash = {}
+
+      rename_files(paths, dry_run) do |curr_path, _global_index|
+        parent_dir = curr_path.dirname
+
+        # Get right format and initial index
+        if curr_path.file?
+          curr_format = file_format
+          curr_index = file_initial_num
+        else
+          curr_format = dir_format
+          curr_index = dir_initial_num
+        end
+
+        # Check if we already visited current dir
+        if paths_hash.include? parent_dir
+          curr_index = paths_hash[parent_dir]
+          paths_hash[parent_dir] += 1
+        else
+          paths_hash[parent_dir] = curr_index + 1
+        end
+
+        # return formatted name
+        curr_format.gsub(NUM_LOCATOR, curr_index.to_s)
+      end
+    end
+
     private
 
     # Runs the logic of renaming files.
@@ -95,7 +145,7 @@ module Renamer
     # @yield [curr_path, curr_index] Description of block
     # @yieldparam curr_path [Pathname] is the absolute path of the current file to be renamed
     # @yieldparam curr_index [Integer] is an index of the current file to be renamed in the input array
-    # @yieldreturn [optional, types, ...] description
+    # @yieldreturn [optional, types, ...] a new name for the currently selected file.
     def rename_files(paths, dry_run)
       raise ArgumentError, "Method `#{__method__}` needs to have a block for renaming files." unless block_given?
 

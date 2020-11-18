@@ -6,6 +6,8 @@ require 'bundler/setup'
 Bundler.require(:default, :development)
 
 module Renamer
+  NUM_LOCATOR = '\i'
+
   # Thor CLI interface for Renamer CLI utility.
   class CLI < Thor
     desc 'base-replace [FILE_PATHS]', ''
@@ -79,6 +81,36 @@ module Renamer
 
       begin
         cli_logic.add_text(options[:prepend], options[:append], options[:dry_run], options[:replace_mode], files_folders)
+      rescue ArgumentError => e
+        puts "ERROR OCCURED: #{e.message}"
+        puts ''
+        CLI.command_help(Thor::Base.shell.new, 'add-text')
+      end
+    end
+
+    desc 'format [FILE_PATHS]', ''
+    long_desc <<-LONGDESC
+      Loads the given files and all files in the given folders.
+      Renames them using a specified format regardless of their current name.
+
+      FILE_PATHS:
+        \x5
+        Contains filepaths to files and/or folders that should be renamed.\x5
+        If folders are provided and files are to be renamed then the default behavior is to rename files they contain.
+    LONGDESC
+    method_option :file_format, type: :string, aliases: '-f', default: "File#{NUM_LOCATOR}", desc: "A format (text) of renamed files. A string `#{NUM_LOCATOR}` tells where the files number is going to be. If `#{NUM_LOCATOR}` is missing then it is appended at the end by default."
+    method_option :dir_format, type: :string, aliases: '-dir', default: "Folder#{NUM_LOCATOR}", desc: "A format (text) of renamed folders. A string `#{NUM_LOCATOR}` tells where the files number is going to be. If `#{NUM_LOCATOR}` is missing then it is appended at the end by default."
+    method_option :file_initial_num, type: :numeric, aliases: '-fn', default: 0, desc: 'Initial number for renamed files.'
+    method_option :dir_initial_num, type: :numeric, aliases: '-dn', default: 0, desc: 'Initial number for renamed folders.'
+    method_option :dry_run, type: :boolean, aliases: '-d', default: false, desc: 'If this flag is set then the command runs without making changes to the given files.'
+    method_option :replace_mode, type: :string, aliases: '-m', default: ReplaceModes::ALL, enum: ReplaceModes.all_values, desc: 'Sets the mode to replace names of only files, only folders or all'
+    def format(*files_folders)
+      cli_logic = CLI_Logic.new
+
+      begin
+        cli_logic.format(options[:file_format], options[:dir_format],
+                         options[:file_initial_num], options[:dir_initial_num],
+                         options[:dry_run], options[:replace_mode], files_folders)
       rescue ArgumentError => e
         puts "ERROR OCCURED: #{e.message}"
         puts ''
