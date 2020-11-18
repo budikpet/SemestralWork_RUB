@@ -2,10 +2,15 @@
 
 require 'set'
 require_relative 'replace_modes'
+require_relative 'patches'
 
 module Renamer
   # Implements logic of the created CLI command.
   class CLI_Logic
+    using StringPatch
+    using ArrayPatch
+    using NilClassPatch
+
     # Contains logic of base_replace CLI command.
     # Finds a basic string in names of given files and/or folders and replaces it with another string.
     # @param find_str [String] - a string to find & to be replaced in names of the given files and/or folders
@@ -14,7 +19,8 @@ module Renamer
     # @param replace_mode [ReplaceMode] - tells the system whether file names, directory names or all given names should be changed
     # @param files_folders [Array<String>] - an array of all files and/or folders to be renamed
     def base_replace(find_str, replace_str, dry_run, replace_mode, files_folders)
-      raise ArgumentError, 'No files or folders provided for renaming.' if files_folders.empty?
+      raise ArgumentError, 'Parameter find_str must be provided.' if find_str.nil?
+      raise ArgumentError, 'No files or folders provided for renaming.' unless files_folders.has_data?
       unless files_folders.any? { |path| File.exist?(path) }
         raise ArgumentError, 'Neither of provided files or folders exists.'
       end
@@ -38,7 +44,8 @@ module Renamer
     # @param replace_mode [ReplaceMode] - tells the system whether file names, directory names or all given names should be changed
     # @param files_folders [Array<String>] - an array of all files and/or folders to be renamed
     def regex_replace(find_str, replace_str, dry_run, replace_mode, files_folders)
-      raise ArgumentError, 'No files or folders provided for renaming.' if files_folders.empty?
+      raise ArgumentError, 'Parameter find_str must be provided.' if find_str.nil?
+      raise ArgumentError, 'No files or folders provided for renaming.' unless files_folders.has_data?
       unless files_folders.any? { |path| File.exist?(path) }
         raise ArgumentError, 'Neither of provided files or folders exists.'
       end
@@ -61,8 +68,8 @@ module Renamer
     # @param replace_mode [ReplaceMode] - tells the system whether file names, directory names or all given names should be changed
     # @param files_folders [Array<String>] - an array of all files and/or folders to be renamed
     def add_text(prepend, append, dry_run, replace_mode, files_folders)
-      raise ArgumentError, 'No files or folders provided for renaming.' if files_folders.empty?
-      raise ArgumentError, 'Neither --prepend or --append provided.' if prepend.nil? && append.nil?
+      raise ArgumentError, 'No files or folders provided for renaming.' unless files_folders.has_data?
+      raise ArgumentError, 'Neither --prepend or --append provided.' unless prepend.has_data? || append.has_data?
       unless files_folders.any? { |path| File.exist?(path) }
         raise ArgumentError, 'Neither of provided files or folders exists.'
       end
@@ -93,34 +100,49 @@ module Renamer
     # @param file_initial_num [Integer] - an initial number for files
     # @param folder_initial_num [Integer] - a text to append to filenames of the given files and/or folders
     # @param dry_run [boolean] - true <=> we want to print out what would happen without making changes in the file_system
-    # @param replace_mode [ReplaceMode] - tells the system whether file names, directory names or all given names should be changed
     # @param files_folders [Array<String>] - an array of all files and/or folders to be renamed
-    def format(file_format, dir_format, file_initial_num, dir_initial_num, dry_run, replace_mode, files_folders)
-      raise ArgumentError, 'No files or folders provided for renaming.' if files_folders.empty?
+    def format(file_format, dir_format, file_initial_num, dir_initial_num, dry_run, files_folders)
+      raise ArgumentError, 'No files or folders provided for renaming.' unless files_folders.has_data?
+      unless file_format.has_data? || dir_format.has_data?
+        raise ArgumentError, 'Neither --file-format or --folder-format specified.'
+      end
       unless files_folders.any? { |path| File.exist?(path) }
         raise ArgumentError, 'Neither of provided files or folders exists.'
       end
 
-      paths = get_paths(replace_mode, files_folders)
-
       # Check if file and folder format vars contain NUM_LOCATOR
-      file_format = NUM_LOCATOR if file_format.empty? || file_format.nil?
-      file_format = "#{file_format}#{NUM_LOCATOR}" unless file_format.include? NUM_LOCATOR
-      dir_format = NUM_LOCATOR if dir_format.empty? || dir_format.nil?
-      dir_format = "#{dir_format}#{NUM_LOCATOR}" unless dir_format.include? NUM_LOCATOR
+      file_format = "#{file_format}#{NUM_LOCATOR}" unless !file_format.nil? && file_format.include?(NUM_LOCATOR)
+      dir_format = "#{dir_format}#{NUM_LOCATOR}" unless !dir_format.nil? && dir_format.include?(NUM_LOCATOR)
 
-      paths_hash = {}
+      if file_format.has_data? && dir_format.has_data?
+        replace_mode = ReplaceModes::ALL
+        puts "Replacing names of files with format `#{file_format}`."
+        puts "Replacing names of folders with format `#{dir_format}`."
+      elsif file_format.has_data?
+        replace_mode = ReplaceModes::FILES_ONLY
+        puts "Replacing names of files with format `#{file_format}`."
+      else
+        replace_mode = ReplaceModes::FOLDERS_ONLY
+        puts "Replacing names of folders with format `#{dir_format}`."
+      end
+
+      files_hash = {}
+      dirs_hash = {}
+      paths = get_paths(replace_mode, files_folders)
 
       rename_files(paths, dry_run) do |curr_path, _global_index|
         parent_dir = curr_path.dirname
+        extname = curr_path.extname
 
         # Get right format and initial index
         if curr_path.file?
           curr_format = file_format
           curr_index = file_initial_num
+          paths_hash = files_hash
         else
           curr_format = dir_format
           curr_index = dir_initial_num
+          paths_hash = dirs_hash
         end
 
         # Check if we already visited current dir
@@ -132,7 +154,7 @@ module Renamer
         end
 
         # return formatted name
-        curr_format.gsub(NUM_LOCATOR, curr_index.to_s)
+        "#{curr_format.gsub(NUM_LOCATOR, curr_index.to_s)}#{extname}"
       end
     end
 
@@ -141,7 +163,7 @@ module Renamer
     # Runs the logic of renaming files.
     # @raise [ArgumentError] if block is not given.
     #
-    # for block {|curr_path, curr_index| ... }
+    # For block {|curr_path, curr_index| ... }
     # @yield [curr_path, curr_index] Description of block
     # @yieldparam curr_path [Pathname] is the absolute path of the current file to be renamed
     # @yieldparam curr_index [Integer] is an index of the current file to be renamed in the input array

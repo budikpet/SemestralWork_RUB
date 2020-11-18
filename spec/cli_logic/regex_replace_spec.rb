@@ -179,6 +179,17 @@ describe 'Renamer::CLI_Logic, regex_replace command: ' do
     expect(curr_dirs).to eq ['temp'].sort
   end
 
+  it 'checks errors' do
+    f = '\d'
+    r = ''
+    m = ReplaceModes::ALL
+
+    expect { subject.regex_replace(f, r, false, m, []) }.to raise_error(ArgumentError)
+    expect { subject.regex_replace(f, r, false, m, nil) }.to raise_error(ArgumentError)
+    expect { subject.regex_replace(f, r, false, m, [@tmp_dir + 'someDir']) }.to raise_error(ArgumentError)
+    expect { subject.regex_replace(nil, r, false, m, [@tmp_dir]) }.to raise_error(ArgumentError)
+  end
+
   after(:all) do
     @used_tmp_dirs.each do |path|
       FileUtils.remove_dir(path)

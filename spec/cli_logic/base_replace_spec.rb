@@ -282,6 +282,17 @@ describe 'Renamer::CLI_Logic, base_replace command: ' do
     expect(curr_dirs).to eq ['temp', 'in_temp', 'in_temp2', 'in_in_temp'].sort
   end
 
+  it 'checks errors' do
+    f = 'temp'
+    r = 't'
+    m = ReplaceModes::ALL
+
+    expect { subject.base_replace(f, r, false, m, []) }.to raise_error(ArgumentError)
+    expect { subject.base_replace(f, r, false, m, nil) }.to raise_error(ArgumentError)
+    expect { subject.base_replace(f, r, false, m, [@tmp_dir + 'someDir']) }.to raise_error(ArgumentError)
+    expect { subject.base_replace(nil, r, false, m, [@tmp_dir]) }.to raise_error(ArgumentError)
+  end
+
   after(:all) do
     @used_tmp_dirs.each do |path|
       FileUtils.remove_dir(path)

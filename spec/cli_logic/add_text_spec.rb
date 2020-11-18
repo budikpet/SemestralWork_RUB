@@ -120,6 +120,25 @@ describe 'Renamer::CLI_Logic, add_text command: ' do
     expect(curr_dirs).to eq ['temp_d'].sort
   end
 
+  it 'checks errors' do
+    error_msg = 'Got through all raises.'
+    prepend = 'temp'
+    append = 't'
+    m = ReplaceModes::ALL
+
+    allow(subject).to receive(:get_paths).and_raise(error_msg)
+
+    # Test raises
+    expect { subject.add_text(prepend, append, false, m, []) }.to raise_error(ArgumentError)
+    expect { subject.add_text(prepend, append, false, m, nil) }.to raise_error(ArgumentError)
+    expect { subject.add_text(prepend, append, false, m, [@tmp_dir + 'someDir']) }.to raise_error(ArgumentError)
+    expect { subject.add_text(nil, nil, false, m, [@tmp_dir]) }.to raise_error(ArgumentError)
+
+    # Test if nothing was raised by the method
+    expect { subject.add_text(nil, append, false, m, [@tmp_dir]) }.to raise_error(error_msg)
+    expect { subject.add_text(prepend, nil, false, m, [@tmp_dir]) }.to raise_error(error_msg)
+  end
+
   after(:all) do
     @used_tmp_dirs.each do |path|
       FileUtils.remove_dir(path)

@@ -103,14 +103,13 @@ module Renamer
     method_option :file_initial_num, type: :numeric, aliases: '-fn', default: 0, desc: 'Initial number for renamed files.'
     method_option :dir_initial_num, type: :numeric, aliases: '-dn', default: 0, desc: 'Initial number for renamed folders.'
     method_option :dry_run, type: :boolean, aliases: '-d', default: false, desc: 'If this flag is set then the command runs without making changes to the given files.'
-    method_option :replace_mode, type: :string, aliases: '-m', default: ReplaceModes::ALL, enum: ReplaceModes.all_values, desc: 'Sets the mode to replace names of only files, only folders or all'
     def format(*files_folders)
       cli_logic = CLI_Logic.new
 
       begin
         cli_logic.format(options[:file_format], options[:dir_format],
                          options[:file_initial_num], options[:dir_initial_num],
-                         options[:dry_run], options[:replace_mode], files_folders)
+                         options[:dry_run], files_folders)
       rescue ArgumentError => e
         puts "ERROR OCCURED: #{e.message}"
         puts ''
