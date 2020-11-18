@@ -6,7 +6,7 @@
     {
       "label": "Run renamer rdebug-ide",
       "type": "shell",
-      "command": "rdebug-ide --host 127.0.0.1 --port 1234 ./renamer.rb base-replace"
+      "command": "rdebug-ide --host 127.0.0.1 --port 1234 ./renamer.rb add-text -d hep"
     }
   ]
 }

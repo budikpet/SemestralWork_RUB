@@ -14,6 +14,11 @@ module Renamer
     # @param replace_mode [ReplaceMode] - tells the system whether file names, directory names or all given names should be changed
     # @param files_folders [Array<String>] - an array of all files and/or folders to be renamed
     def base_replace(find_str, replace_str, dry_run, replace_mode, files_folders)
+      raise ArgumentError, 'No files or folders provided for renaming.' if files_folders.empty?
+      unless files_folders.any? { |path| File.exist?(path) }
+        raise ArgumentError, 'Neither of provided files or folders exists.'
+      end
+
       paths = get_paths(replace_mode, files_folders)
 
       # Do replacement
@@ -33,6 +38,11 @@ module Renamer
     # @param replace_mode [ReplaceMode] - tells the system whether file names, directory names or all given names should be changed
     # @param files_folders [Array<String>] - an array of all files and/or folders to be renamed
     def regex_replace(find_str, replace_str, dry_run, replace_mode, files_folders)
+      raise ArgumentError, 'No files or folders provided for renaming.' if files_folders.empty?
+      unless files_folders.any? { |path| File.exist?(path) }
+        raise ArgumentError, 'Neither of provided files or folders exists.'
+      end
+
       find_str = Regexp.new(find_str.sub(%r{^/}, '').sub(%r{/$}, ''))
       paths = get_paths(replace_mode, files_folders)
 
@@ -51,6 +61,12 @@ module Renamer
     # @param replace_mode [ReplaceMode] - tells the system whether file names, directory names or all given names should be changed
     # @param files_folders [Array<String>] - an array of all files and/or folders to be renamed
     def add_text(prepend, append, dry_run, replace_mode, files_folders)
+      raise ArgumentError, 'No files or folders provided for renaming.' if files_folders.empty?
+      raise ArgumentError, 'Neither --prepend or --append provided.' if prepend.nil? && append.nil?
+      unless files_folders.any? { |path| File.exist?(path) }
+        raise ArgumentError, 'Neither of provided files or folders exists.'
+      end
+
       prepend = prepend.nil? ? '' : prepend
       append = append.nil? ? '' : append
       paths = get_paths(replace_mode, files_folders)

@@ -24,7 +24,14 @@ module Renamer
     method_option :replace_mode, type: :string, aliases: '-m', default: ReplaceModes::ALL, enum: ReplaceModes.all_values, desc: 'Sets the mode to replace names of only files, only folders or all'
     def base_replace(*files_folders)
       cli_logic = CLI_Logic.new
-      cli_logic.base_replace(options[:find_str], options[:replace_str], options[:dry_run], options[:replace_mode], files_folders)
+
+      begin
+        cli_logic.base_replace(options[:find_str], options[:replace_str], options[:dry_run], options[:replace_mode], files_folders)
+      rescue ArgumentError => e
+        puts "ERROR OCCURED: #{e.message}"
+        puts ''
+        CLI.command_help(Thor::Base.shell.new, 'add-text')
+      end
     end
 
     desc 'regex-replace [FILE_PATHS]', ''
@@ -43,7 +50,14 @@ module Renamer
     method_option :replace_mode, type: :string, aliases: '-m', default: ReplaceModes::ALL, enum: ReplaceModes.all_values, desc: 'Sets the mode to replace names of only files, only folders or all'
     def regex_replace(*files_folders)
       cli_logic = CLI_Logic.new
-      cli_logic.regex_replace(options[:find_str], options[:replace_str], options[:dry_run], options[:replace_mode], files_folders)
+
+      begin
+        cli_logic.regex_replace(options[:find_str], options[:replace_str], options[:dry_run], options[:replace_mode], files_folders)
+      rescue ArgumentError => e
+        puts "ERROR OCCURED: #{e.message}"
+        puts ''
+        CLI.command_help(Thor::Base.shell.new, 'add-text')
+      end
     end
 
     desc 'add-text [FILE_PATHS]', ''
@@ -57,19 +71,19 @@ module Renamer
         If folders are provided and files are to be renamed then the default behavior is to rename files they contain.
     LONGDESC
     method_option :prepend, type: :string, aliases: '-p', desc: 'The text to prepend to filenames.'
-    method_option :append, type: :string, aliases: '-a', default: '', desc: 'The text to append to filenames.'
+    method_option :append, type: :string, aliases: '-a', desc: 'The text to append to filenames.'
     method_option :dry_run, type: :boolean, aliases: '-d', default: false, desc: 'If this flag is set then the command runs without making changes to the given files.'
     method_option :replace_mode, type: :string, aliases: '-m', default: ReplaceModes::ALL, enum: ReplaceModes.all_values, desc: 'Sets the mode to replace names of only files, only folders or all'
     def add_text(*files_folders)
-      prepend = options[:prepend]
-      append = options[:append]
-      if prepend.nil? && append.nil?
-        CLI.command_help(Thor::Base.shell.new, 'add-text')
-        return
-      end
-
       cli_logic = CLI_Logic.new
-      cli_logic.add_text(prepend, append, options[:dry_run], options[:replace_mode], files_folders)
+
+      begin
+        cli_logic.add_text(options[:prepend], options[:append], options[:dry_run], options[:replace_mode], files_folders)
+      rescue ArgumentError => e
+        puts "ERROR OCCURED: #{e.message}"
+        puts ''
+        CLI.command_help(Thor::Base.shell.new, 'add-text')
+      end
     end
   end
 end
