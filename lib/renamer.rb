@@ -6,6 +6,7 @@ require 'bundler/setup'
 Bundler.require(:default, :development)
 
 module Renamer
+  # A special string variable that is used to indicate where numbers of format command should be
   NUM_LOCATOR = '\i'
 
   # Thor CLI interface for Renamer CLI utility.

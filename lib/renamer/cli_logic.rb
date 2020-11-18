@@ -4,6 +4,7 @@ require 'set'
 require_relative 'replace_modes'
 require_relative 'patches'
 
+# Main module of Renamer CLI and it's logic.
 module Renamer
   # Implements logic of the created CLI command.
   class CLI_Logic
