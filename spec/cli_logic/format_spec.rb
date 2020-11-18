@@ -45,7 +45,7 @@ describe 'Renamer::CLI_Logic, format command: ' do
       subject.format(file_format, dir_format, file_initial_num, dir_initial_num, false, [@tmp_dir + '/temp'])
     end
 
-    puts output.join("\n")
+    # puts output.join("\n")
 
     # Check output
     expect(output[0]).to eq "Replacing names of files with format `#{file_format}`."
@@ -67,6 +67,154 @@ describe 'Renamer::CLI_Logic, format command: ' do
     expect(curr_files.empty?).to eq false
     expect(curr_dirs.empty?).to eq false
     expect(curr_files).to eq ['File0.txt', 'File1.txt', 'File0.txt', 'File1.txt'].sort
+    expect(curr_dirs).to eq ['Folder0', 'Folder1', 'Folder0'].sort
+  end
+
+  it 'checks all custom parameters' do
+    file_format = '\iSomeFile\i'
+    dir_format = '\iTheFolder\i'
+    file_initial_num = 5
+    dir_initial_num = 3
+
+    # Changes standard output to StringIO to catch `puts` of the base_replace method
+    # Changes standard output back after base_replace is done
+    output = SpecUtils.test_with_output do
+      subject.format(file_format, dir_format, file_initial_num, dir_initial_num, false, [@tmp_dir + '/temp'])
+    end
+
+    # puts output.join("\n")
+
+    # Check output
+    expect(output[0]).to eq "Replacing names of files with format `#{file_format}`."
+    expect(output[1]).to eq "Replacing names of folders with format `#{dir_format}`."
+    expect(output.count { |str| str.include? 'Renamed `tempA.txt` -> `5SomeFile5.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `tempB.txt` -> `6SomeFile6.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `in_tempA.txt` -> `5SomeFile5.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `in_tempB.txt` -> `6SomeFile6.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `in_temp2` -> `3TheFolder3`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `in_temp1` -> `4TheFolder4`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `temp` -> `3TheFolder3`' }).to eq 1
+
+    curr_files = Dir.glob("#{@tmp_dir}/**/*").map { |path| Pathname.new(path) }
+    curr_dirs = curr_files.select(&:directory?).map { |path| path.basename.to_s }.sort
+    curr_files = curr_files.select(&:file?).map { |path| path.basename.to_s }.sort
+
+    # Check file system
+
+    expect(curr_files.empty?).to eq false
+    expect(curr_dirs.empty?).to eq false
+    expect(curr_files).to eq ['5SomeFile5.txt', '6SomeFile6.txt', '5SomeFile5.txt', '6SomeFile6.txt'].sort
+    expect(curr_dirs).to eq ['3TheFolder3', '4TheFolder4', '3TheFolder3'].sort
+  end
+
+  it 'checks formats without special variable' do
+    file_format = 'File'
+    dir_format = 'Folder'
+    file_initial_num = 0
+    dir_initial_num = 0
+
+    # Changes standard output to StringIO to catch `puts` of the base_replace method
+    # Changes standard output back after base_replace is done
+    output = SpecUtils.test_with_output do
+      subject.format(file_format, dir_format, file_initial_num, dir_initial_num, false, [@tmp_dir + '/temp'])
+    end
+
+    # puts output.join("\n")
+
+    # Check output
+    expect(output[0]).to eq "Replacing names of files with format `#{file_format}\\i`."
+    expect(output[1]).to eq "Replacing names of folders with format `#{dir_format}\\i`."
+    expect(output.count { |str| str.include? 'Renamed `tempA.txt` -> `File0.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `tempB.txt` -> `File1.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `in_tempA.txt` -> `File0.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `in_tempB.txt` -> `File1.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `in_temp2` -> `Folder0`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `in_temp1` -> `Folder1`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `temp` -> `Folder0`' }).to eq 1
+
+    curr_files = Dir.glob("#{@tmp_dir}/**/*").map { |path| Pathname.new(path) }
+    curr_dirs = curr_files.select(&:directory?).map { |path| path.basename.to_s }.sort
+    curr_files = curr_files.select(&:file?).map { |path| path.basename.to_s }.sort
+
+    # Check file system
+
+    expect(curr_files.empty?).to eq false
+    expect(curr_dirs.empty?).to eq false
+    expect(curr_files).to eq ['File0.txt', 'File1.txt', 'File0.txt', 'File1.txt'].sort
+    expect(curr_dirs).to eq ['Folder0', 'Folder1', 'Folder0'].sort
+  end
+
+  it 'checks files-only command' do
+    file_format = 'File\i'
+    dir_format = nil
+    file_initial_num = 0
+    dir_initial_num = 0
+
+    # Changes standard output to StringIO to catch `puts` of the base_replace method
+    # Changes standard output back after base_replace is done
+    output = SpecUtils.test_with_output do
+      subject.format(file_format, dir_format, file_initial_num, dir_initial_num, false, [@tmp_dir + '/temp'])
+    end
+
+    # puts output.join("\n")
+
+    # Check output
+    expect(output[0]).to eq "Replacing names of files with format `#{file_format}`."
+    expect(output.count { |str| str.include? 'Replacing names of folders with format' }).to eq 0
+    expect(output.count { |str| str.include? 'Renamed `tempA.txt` -> `File0.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `tempB.txt` -> `File1.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `in_tempA.txt` -> `File0.txt`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `in_tempB.txt` -> `File1.txt`' }).to eq 1
+    expect(output.count { |str| str.include? '`in_temp2`' }).to eq 0
+    expect(output.count { |str| str.include? '`in_temp1`' }).to eq 0
+    expect(output.count { |str| str.include? '`temp`' }).to eq 0
+
+    curr_files = Dir.glob("#{@tmp_dir}/**/*").map { |path| Pathname.new(path) }
+    curr_dirs = curr_files.select(&:directory?).map { |path| path.basename.to_s }.sort
+    curr_files = curr_files.select(&:file?).map { |path| path.basename.to_s }.sort
+
+    # Check file system
+
+    expect(curr_files.empty?).to eq false
+    expect(curr_dirs.empty?).to eq false
+    expect(curr_files).to eq ['File0.txt', 'File1.txt', 'File0.txt', 'File1.txt'].sort
+    expect(curr_dirs).to eq ['temp', 'in_temp1', 'in_temp2'].sort
+  end
+
+  it 'checks folders-only command' do
+    file_format = nil
+    dir_format = 'Folder\i'
+    file_initial_num = 0
+    dir_initial_num = 0
+
+    # Changes standard output to StringIO to catch `puts` of the base_replace method
+    # Changes standard output back after base_replace is done
+    output = SpecUtils.test_with_output do
+      subject.format(file_format, dir_format, file_initial_num, dir_initial_num, false, [@tmp_dir + '/temp'])
+    end
+
+    # puts output.join("\n")
+
+    # Check output
+    expect(output[0]).to eq "Replacing names of folders with format `#{dir_format}`."
+    expect(output.count { |str| str.include? 'Replacing names of files with format' }).to eq 0
+    expect(output.count { |str| str.include? '`tempA.txt`' }).to eq 0
+    expect(output.count { |str| str.include? '`tempB.txt`' }).to eq 0
+    expect(output.count { |str| str.include? '`in_tempA.txt`' }).to eq 0
+    expect(output.count { |str| str.include? '`in_tempB.txt`' }).to eq 0
+    expect(output.count { |str| str.include? 'Renamed `in_temp2` -> `Folder0`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `in_temp1` -> `Folder1`' }).to eq 1
+    expect(output.count { |str| str.include? 'Renamed `temp` -> `Folder0`' }).to eq 1
+
+    curr_files = Dir.glob("#{@tmp_dir}/**/*").map { |path| Pathname.new(path) }
+    curr_dirs = curr_files.select(&:directory?).map { |path| path.basename.to_s }.sort
+    curr_files = curr_files.select(&:file?).map { |path| path.basename.to_s }.sort
+
+    # Check file system
+
+    expect(curr_files.empty?).to eq false
+    expect(curr_dirs.empty?).to eq false
+    expect(curr_files).to eq ['tempA.txt', 'tempB.txt', 'in_tempA.txt', 'in_tempB.txt'].sort
     expect(curr_dirs).to eq ['Folder0', 'Folder1', 'Folder0'].sort
   end
 

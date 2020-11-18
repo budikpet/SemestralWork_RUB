@@ -111,8 +111,8 @@ module Renamer
       end
 
       # Check if file and folder format vars contain NUM_LOCATOR
-      file_format = "#{file_format}#{NUM_LOCATOR}" unless !file_format.nil? && file_format.include?(NUM_LOCATOR)
-      dir_format = "#{dir_format}#{NUM_LOCATOR}" unless !dir_format.nil? && dir_format.include?(NUM_LOCATOR)
+      file_format = "#{file_format}#{NUM_LOCATOR}" if !file_format.nil? && !file_format.include?(NUM_LOCATOR)
+      dir_format = "#{dir_format}#{NUM_LOCATOR}" if !dir_format.nil? && !dir_format.include?(NUM_LOCATOR)
 
       if file_format.has_data? && dir_format.has_data?
         replace_mode = ReplaceModes::ALL
