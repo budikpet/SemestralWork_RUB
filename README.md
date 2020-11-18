@@ -20,8 +20,8 @@ If you **download** the whole repository from GitHub (either manually or using g
 $ bundle install
 
 # Build and install the gem using renamer.gemspec
-$ gem build renamer.gemspec
-$ gem install ./renamer-0.0.0.gem
+$ gem build renamer.gemspec          # creates a file renamer-<version>.gem which is used to install the gem
+$ gem install ./renamer-0.1.0.gem
 ```
 
 ## Usage
