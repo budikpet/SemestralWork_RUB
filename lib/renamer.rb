@@ -3,7 +3,7 @@
 require_relative 'renamer/cli_logic'
 require_relative 'renamer/replace_modes'
 require 'bundler/setup'
-Bundler.require(:default, :development)
+require 'thor'
 
 module Renamer
   # A special string variable that is used to indicate where numbers of format command should be

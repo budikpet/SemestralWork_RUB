@@ -19,5 +19,9 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '>= 2.4'
 
+  s.add_runtime_dependency 'thor', '== 1.0.1'
+
   s.add_development_dependency 'bundler', '>= 1.0', '< 3'
+  s.add_development_dependency 'rspec', '>= 3.10'
+  s.add_development_dependency 'yard', '>= 0.9'
 end
